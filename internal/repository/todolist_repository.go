@@ -16,7 +16,7 @@ func NewTodolistRepo(db *sql.DB) *TodolistRepository {
 	return &TodolistRepository{db: db}
 }
 
-func (r *TodolistRepository) Create(ctx context.Context, arg model.TodoList) error {
+func (r *TodolistRepository) Create(ctx context.Context, arg *model.TodoList) error {
 	trx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -104,7 +104,7 @@ func (r *TodolistRepository) GetSingleTodolist(ctx context.Context, id int64) (*
 	return &t, nil
 }
 
-func (r *TodolistRepository) Update(ctx context.Context, arg *model.TodoList) (*model.TodoList, error) {
+func (r *TodolistRepository) Update(ctx context.Context, arg *model.TodoList, id int64) (*model.TodoList, error) {
 	trx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -121,6 +121,7 @@ func (r *TodolistRepository) Update(ctx context.Context, arg *model.TodoList) (*
 		SET 
 			title = COALESCE($1, title), 
 			description = COALESCE($2, description)
+			updated_at = NOW()
 		WHERE id = $3
 	`
 
@@ -131,7 +132,7 @@ func (r *TodolistRepository) Update(ctx context.Context, arg *model.TodoList) (*
 		query, 
 		arg.Title, 
 		arg.Description,
-		arg.ID,
+		id,
 	).Scan(
 		&t.Title, 
 		&t.Description,

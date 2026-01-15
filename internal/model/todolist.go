@@ -6,7 +6,7 @@ type TodoList struct {
 	ID int64 `json:"id"`
 	CreatedBy int64 `json:"created_by"`
 	Title string `json:"title"`
-	Description string `json:"description"`
+	Description *string `json:"description,omitempty"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
