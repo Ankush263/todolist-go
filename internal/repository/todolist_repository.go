@@ -17,22 +17,40 @@ func NewTodolistRepo(db *sql.DB) *TodolistRepository {
 }
 
 func (r *TodolistRepository) Create(ctx context.Context, arg model.TodoList) error {
+	trx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	// Ensure rollback if anything fails
+	defer func() {
+		if err != nil {
+			trx.Rollback()
+		}
+	}()
+
 	query := `
 		INSERT INTO todolists (title, description)
 		VALUES ($1, $2)
 		RETURNING id, title, description
 	`
 
-	return r.db.QueryRowContext(
+	err = trx.QueryRowContext(
 		ctx, 
 		query, 
-		&arg.Title, 
-		&arg.Description,
+		arg.Title, 
+		arg.Description,
 	).Scan(
 		&arg.ID,
 		&arg.Title,
 		&arg.Description,
 	)
+
+	if err != nil {
+		return err
+	}
+
+	return trx.Commit()
 }
 
 func (r *TodolistRepository) GetAllTodolistsOfUser(ctx context.Context, userid int64) (*model.TodoList, error) {
@@ -84,4 +102,78 @@ func (r *TodolistRepository) GetSingleTodolist(ctx context.Context, id int64) (*
 		return nil, errors.New("Invalid Credentials")
 	}
 	return &t, nil
+}
+
+func (r *TodolistRepository) Update(ctx context.Context, arg *model.TodoList) (*model.TodoList, error) {
+	trx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if err != nil {
+			trx.Rollback()
+		}
+	}()
+
+	query := `
+		UPDATE todolists
+		SET 
+			title = COALESCE($1, title), 
+			description = COALESCE($2, description)
+		WHERE id = $3
+	`
+
+	var t model.TodoList
+
+	err = trx.QueryRowContext(
+		ctx, 
+		query, 
+		arg.Title, 
+		arg.Description,
+		arg.ID,
+	).Scan(
+		&t.Title, 
+		&t.Description,
+		&t.ID,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	trx.Commit()
+	return &t, nil
+}
+
+func (r *TodolistRepository) Delete(ctx context.Context, id int64) error {
+	trx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			trx.Rollback()
+		}
+	}()
+
+	query := `
+		DELETE FROM todolists
+		WHERE id = $1
+	`
+
+	_, err = trx.ExecContext(
+		ctx, 
+		query, 
+		id,
+	)
+
+	if err != nil {
+		return nil
+	}
+
+	trx.Commit()
+
+	return nil
 }
