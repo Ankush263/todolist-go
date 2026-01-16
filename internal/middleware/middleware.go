@@ -3,7 +3,10 @@ package middleware
 import (
 	"log"
 	"net/http"
+	"strings"
 	"time"
+
+	"github.com/Ankush263/todolist/internal/auth"
 )
 
 func Logging(next http.Handler) http.Handler {
@@ -34,6 +37,24 @@ func CORS(next http.Handler) http.Handler {
 
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func Auth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
+		h := r.Header.Get("Authorization")
+		if !strings.HasPrefix(h, "Bearer ") {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		token := strings.TrimPrefix(h, "Bearer ")
+		_, err := auth.ValidateToken(token)
+		if err != nil {
+			http.Error(w, "Invalid Token", http.StatusUnauthorized)
 			return
 		}
 		next.ServeHTTP(w, r)
