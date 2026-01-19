@@ -4,6 +4,6 @@ CREATE TABLE IF NOT EXISTS users (
     lastname VARCHAR,
     email TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

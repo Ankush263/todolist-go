@@ -18,6 +18,8 @@ func NewAuthHandler(users *repository.UserRepository) *AuthHandler {
 }
 
 type authrequest struct {
+	FirstName string `json:"firstname"`
+	LastName string `json:"lastname"`
 	Email string `json:"email"`
 	Password string `json:"password"`
 }
@@ -65,6 +67,8 @@ func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := model.User{
+		FirstName: req.FirstName,
+		LastName: req.LastName,
 		Email: req.Email,
 		Password: hash,
 	}
