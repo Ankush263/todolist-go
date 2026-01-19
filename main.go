@@ -46,13 +46,13 @@ func main() {
 	r.HandleFunc("/signup", authHandler.Signup).Methods("POST")
 	r.HandleFunc("/login", authHandler.Login).Methods("POST")
 
-	authRouter := r.PathPrefix("/").Subrouter()
-	authRouter.Use(middleware.Auth)
+	todoRouter := r.PathPrefix("/").Subrouter()
+	todoRouter.Use(middleware.Auth)
 
-	authRouter.HandleFunc("/todo", todoHandler.Create).Methods("POST")
-	authRouter.HandleFunc("/todo/{id}", todoHandler.GetById).Methods("GET")
-	authRouter.HandleFunc("/todo/{id}", todoHandler.Update).Methods("PATCH")
-	authRouter.HandleFunc("/todo/{id}", todoHandler.Delete).Methods("DELETE")
+	todoRouter.HandleFunc("/todo", todoHandler.Create).Methods("POST")
+	todoRouter.HandleFunc("/todo/{id}", todoHandler.GetById).Methods("GET")
+	todoRouter.HandleFunc("/todo/{id}", todoHandler.Update).Methods("PATCH")
+	todoRouter.HandleFunc("/todo/{id}", todoHandler.Delete).Methods("DELETE")
 
 	log.Println("Server is running on the port 8000")
 	log.Fatal(http.ListenAndServe(":8000", r))
